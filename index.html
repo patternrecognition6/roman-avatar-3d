@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roman's Avatar</title>
+    <style>
+        body { margin: 0; background: #1a1a2e; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: Arial;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Roman's 3D Avatar - Drag to rotate</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.5, 3);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 1, 0);
+        controls.update();
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1);
+        keyLight.position.set(5, 10, 7);
+        keyLight.castShadow = true;
+        scene.add(keyLight);
+        
+        const fillLight = new THREE.DirectionalLight(0x32ffc8, 0.3);
+        fillLight.position.set(-5, 5, -5);
+        scene.add(fillLight);
+        
+        const rimLight = new THREE.DirectionalLight(0xff6b6b, 0.2);
+        rimLight.position.set(0, 5, -10);
+        scene.add(rimLight);
+        
+        // Materials
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xe8beac, roughness: 0.7 });
+        const hairMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0a, roughness: 0.8 });
+        const shirtMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0x3a5a40, roughness: 0.3 });
+        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+        
+        // Head
+        const headGeom = new THREE.SphereGeometry(0.22, 32, 32);
+        headGeom.scale(1, 1.15, 0.95);
+        const head = new THREE.Mesh(headGeom, skinMat);
+        head.position.set(0, 1.6, 0);
+        scene.add(head);
+        
+        // Jaw/chin (more angular)
+        const jawGeom = new THREE.BoxGeometry(0.18, 0.12, 0.15);
+        const jaw = new THREE.Mesh(jawGeom, skinMat);
+        jaw.position.set(0, 1.42, 0.05);
+        scene.add(jaw);
+        
+        // Eyes
+        const eyeGeom = new THREE.SphereGeometry(0.035, 16, 16);
+        const leftEye = new THREE.Mesh(eyeGeom, eyeMat);
+        leftEye.position.set(-0.07, 1.63, 0.18);
+        scene.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeom, eyeMat);
+        rightEye.position.set(0.07, 1.63, 0.18);
+        scene.add(rightEye);
+        
+        // Pupils
+        const pupilGeom = new THREE.SphereGeometry(0.015, 8, 8);
+        const leftPupil = new THREE.Mesh(pupilGeom, pupilMat);
+        leftPupil.position.set(-0.07, 1.63, 0.21);
+        scene.add(leftPupil);
+        
+        const rightPupil = new THREE.Mesh(pupilGeom, pupilMat);
+        rightPupil.position.set(0.07, 1.63, 0.21);
+        scene.add(rightPupil);
+        
+        // Eyebrows (angular, focused)
+        const browGeom = new THREE.BoxGeometry(0.06, 0.012, 0.02);
+        const leftBrow = new THREE.Mesh(browGeom, hairMat);
+        leftBrow.position.set(-0.07, 1.7, 0.17);
+        leftBrow.rotation.z = 0.15;
+        scene.add(leftBrow);
+        
+        const rightBrow = new THREE.Mesh(browGeom, hairMat);
+        rightBrow.position.set(0.07, 1.7, 0.17);
+        rightBrow.rotation.z = -0.15;
+        scene.add(rightBrow);
+        
+        // Nose
+        const noseGeom = new THREE.ConeGeometry(0.025, 0.08, 8);
+        const nose = new THREE.Mesh(noseGeom, skinMat);
+        nose.position.set(0, 1.55, 0.2);
+        nose.rotation.x = -0.3;
+        scene.add(nose);
+        
+        // Slight smirk
+        const mouthGeom = new THREE.TorusGeometry(0.03, 0.008, 8, 16, Math.PI * 0.6);
+        const mouth = new THREE.Mesh(mouthGeom, new THREE.MeshStandardMaterial({ color: 0x8b4040 }));
+        mouth.position.set(0.01, 1.47, 0.17);
+        mouth.rotation.x = Math.PI;
+        mouth.rotation.z = 0.1;
+        scene.add(mouth);
+        
+        // Long hair (wavy strands)
+        const hairGroup = new THREE.Group();
+        for (let i = 0; i < 50; i++) {
+            const strand = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.015, 0.008, 0.4 + Math.random() * 0.2, 8),
+                hairMat
+            );
+            const angle = (i / 50) * Math.PI * 2;
+            const radius = 0.2 + Math.random() * 0.05;
+            strand.position.set(
+                Math.sin(angle) * radius,
+                1.7 - Math.random() * 0.15,
+                Math.cos(angle) * radius * 0.8
+            );
+            strand.rotation.x = Math.cos(angle) * 0.3;
+            strand.rotation.z = Math.sin(angle) * 0.3 + (Math.random() - 0.5) * 0.2;
+            hairGroup.add(strand);
+        }
+        // Top hair volume
+        const topHair = new THREE.Mesh(
+            new THREE.SphereGeometry(0.24, 16, 16),
+            hairMat
+        );
+        topHair.scale.set(1, 0.5, 0.9);
+        topHair.position.set(0, 1.78, -0.02);
+        hairGroup.add(topHair);
+        scene.add(hairGroup);
+        
+        // Stubble effect (small dots)
+        for (let i = 0; i < 100; i++) {
+            const stubble = new THREE.Mesh(
+                new THREE.SphereGeometry(0.003, 4, 4),
+                hairMat
+            );
+            stubble.position.set(
+                (Math.random() - 0.5) * 0.15,
+                1.42 + Math.random() * 0.08,
+                0.12 + Math.random() * 0.05
+            );
+            scene.add(stubble);
+        }
+        
+        // Neck
+        const neckGeom = new THREE.CylinderGeometry(0.08, 0.1, 0.15, 16);
+        const neck = new THREE.Mesh(neckGeom, skinMat);
+        neck.position.set(0, 1.32, 0);
+        scene.add(neck);
+        
+        // Body/Shirt (black tee)
+        const bodyGeom = new THREE.CylinderGeometry(0.2, 0.18, 0.5, 16);
+        const body = new THREE.Mesh(bodyGeom, shirtMat);
+        body.position.set(0, 1.0, 0);
+        scene.add(body);
+        
+        // Shoulders
+        const shoulderGeom = new THREE.SphereGeometry(0.1, 16, 16);
+        const leftShoulder = new THREE.Mesh(shoulderGeom, shirtMat);
+        leftShoulder.position.set(-0.22, 1.15, 0);
+        leftShoulder.scale.set(1, 0.7, 0.8);
+        scene.add(leftShoulder);
+        
+        const rightShoulder = new THREE.Mesh(shoulderGeom, shirtMat);
+        rightShoulder.position.set(0.22, 1.15, 0);
+        rightShoulder.scale.set(1, 0.7, 0.8);
+        scene.add(rightShoulder);
+        
+        // Neon accent ring
+        const ringGeom = new THREE.TorusGeometry(0.5, 0.01, 8, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x32ffc8 });
+        const ring = new THREE.Mesh(ringGeom, ringMat);
+        ring.position.set(0, 0.7, 0);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+        
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+            ring.rotation.z += 0.01;
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
